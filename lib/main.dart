@@ -1,38 +1,21 @@
 import 'package:flutter/material.dart';
 import 'models.dart';
+import 'releasePage.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(VinylsApp());
 }
 
-class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
+class VinylsApp extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Vinskat',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: MyHomePage(title: 'Mikon vinskat'),
-    );
-  }
+  _VinylsAppState createState() => _VinylsAppState();
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  final String title;
-
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
+class _VinylsAppState extends State<VinylsApp> {
   final _controller = TextEditingController();
-  var _filtered = [];
-  var _vinskat = [];
+  List<Release> _vinskat = [];
+  Release _selectedRelease;
+  List<Release> _filtered = [];
 
   @override
   void initState() {
@@ -54,9 +37,28 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Vinskat',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primarySwatch: Colors.deepPurple,
+      ),
+      home: Navigator(
+        pages: [
+          MaterialPage(
+            key: ValueKey('ReleaseListPage'),
+            child: _listing(),
+          ),
+        ],
+        onPopPage: (route, result) => route.didPop(result),
+      ),
+    );
+  }
+
+  Widget _listing() {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text('Mikon vinskat'),
       ),
       body: Container(
         child: Column(
@@ -88,24 +90,68 @@ class _MyHomePageState extends State<MyHomePage> {
                 scrollDirection: Axis.vertical,
                 shrinkWrap: true,
                 itemBuilder: (BuildContext context, int index) {
+                  return _listItem(_filtered[index], context);
+                  /*
                   return Container(
-                    height: 25,
+                    height: 40,
                     child: Center(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(_filtered[index].artist),
-                          Text(_filtered[index].title),
+                          Expanded(
+                            child: Text(
+                              _filtered[index].artist,
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          Expanded(
+                            child: TextButton(
+                              child: Text(
+                                _filtered[index].title +
+                                    "  " +
+                                    _filtered[index].year.toString(),
+                                textAlign: TextAlign.center,
+                              ),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) {
+                                    return ReleaseDetailsScreen(
+                                        release: _filtered[index]);
+                                  }),
+                                );
+                              },
+                            ),
+                          ),
                         ],
                       ),
                     ),
                   );
+                  */
                 },
               ),
             ),
           ],
         ),
       ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
+
+  Widget _listItem(Release release, BuildContext context) {
+    String horseUrl = 'https://i.stack.imgur.com/Dw6f7.png';
+    return ListTile(
+      title: Text(release.title),
+      subtitle: Text(release.artist),
+      trailing: Text(release.year.toString()),
+      contentPadding: EdgeInsets.symmetric(horizontal: 30.0),
+      onLongPress: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) {
+            return ReleaseDetailsScreen(releaseId: release.id);
+          }),
+        );
+      },
     );
   }
 
